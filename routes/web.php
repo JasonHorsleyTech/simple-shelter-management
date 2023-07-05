@@ -17,3 +17,27 @@ use JasonHorsleyTech\GptAssistant\GptAssistant;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::group(['prefix' => 'feature'], function () {
+    Route::get('/converse', function () {
+        return view('feature.converse');
+    });
+    Route::get('/converse', function () {
+        return view('feature.converse');
+    });
+    Route::get('/autoform', function () {
+        return view('feature.autoform');
+    });
+    Route::get('/navigation', function () {
+        return view('feature.navigation');
+    });
+    Route::get('/inquiry', function () {
+        return view('feature.inquiry');
+    });
+    Route::get('/audit', function () {
+        return view('feature.audit');
+    });
+    Route::get('/action', function () {
+        return view('feature.action');
+    });
+});

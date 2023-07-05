@@ -7,15 +7,15 @@
     @vite('resources/css/app.css')
 </head>
 
-<body>
-    <div class="bg-gray-800 flex flex-col flex-nowrap h-screen overflow-hidden">
+<body class="bg-gray-800">
+    <div class="flex flex-col flex-nowrap h-screen">
         <header class="bg-gray-600 py-4">
             <div class="max-w-6xl mx-auto grid place-content-center text-white text-5xl">
                 {{ $header ?? 'Example app' }}
             </div>
         </header>
 
-        <div class="grow p-4 max-w-6xl mx-auto grid text-white">
+        <div class="grow py-8 max-w-6xl mx-auto grid text-white">
             {{ $slot }}
         </div>
 
