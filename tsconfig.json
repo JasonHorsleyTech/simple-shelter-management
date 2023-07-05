@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "allowJs": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "resources/js/*"
+            ]
+        },
+        "types": [
+            "vite/client"
+        ],
+        "target": "ESNext",
+        "module": "es2020",
+        "moduleResolution": "node",
+    },
+    "exclude": [
+        "node_modules",
+        "public",
+        "**/examples/**.vue",
+        "**/examples/_**"
+    ],
+    "include": [
+        "resources/js/**/*",
+        "resources/js/*.d.ts"
+    ],
+    "noImplicitAny": false,
+}

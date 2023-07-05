@@ -15,5 +15,5 @@ use JasonHorsleyTech\GptAssistant\GptAssistant;
 */
 
 Route::get('/', function () {
-    dd(GptAssistant::$loaded);
+    return view('welcome');
 });
