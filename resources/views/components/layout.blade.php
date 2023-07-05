@@ -11,7 +11,7 @@
     <div class="bg-gray-800 flex flex-col flex-nowrap h-screen overflow-hidden">
         <header class="bg-gray-600 py-4">
             <div class="max-w-6xl mx-auto grid place-content-center text-white text-5xl">
-                {!! $header ?? '&nbsp;' !!}
+                {{ $header ?? 'Example app' }}
             </div>
         </header>
 
@@ -20,8 +20,8 @@
         </div>
 
         <footer class="bg-gray-600 py-4">
-            <div class="max-w-6xl mx-auto grid place-content-center text-white text-5xl">
-                {!! $footer ?? '&nbsp;' !!}
+            <div class="max-w-6xl mx-auto grid place-content-center text-white text-xl">
+                {{ $footer ?? 'For composer package development purposes' }}
             </div>
         </footer>
     </div>
