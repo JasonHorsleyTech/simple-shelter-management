@@ -65,7 +65,7 @@ type ActionableResponse = {
 const post = async () => {
     waiting.post = true;
 
-    const postResponse = (await axios.post("/api/converse", {
+    const postResponse = (await axios.post("/api/conversations", {
         said: userSays.value,
         confidence: 1,
     })) as PostResponse;
@@ -84,7 +84,7 @@ const ping = () => {
 
     const pingInterval = setInterval(async () => {
         const mixedResponse = await axios.get(
-            `/api/converse/${conversationId}/ping`
+            `/api/conversations/${conversationId}/ping`
         );
 
         if (mixedResponse.data.type === "ping") {

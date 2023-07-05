@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use JasonHorsleyTech\GptAssistant\GptAssistant;
 
@@ -40,4 +41,10 @@ Route::group(['prefix' => 'feature'], function () {
     Route::get('/action', function () {
         return view('feature.action');
     });
+});
+
+
+Route::get('/test', function () {
+    $gpt = new GptAssistant();
+    $gpt->createConversation(User::first());
 });

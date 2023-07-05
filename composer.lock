@@ -980,9 +980,16 @@
             "dist": {
                 "type": "path",
                 "url": "../GptAssistant",
-                "reference": "52141381383aff247f170f08f51e02ec846dc4de"
+                "reference": "f02c5df550700d5f5c5e1a5bf37ddc8d73a73e24"
             },
             "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "JasonHorsleyTech\\GptAssistant\\GptAssistantServiceProvider"
+                    ]
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "JasonHorsleyTech\\GptAssistant\\": "src/"
