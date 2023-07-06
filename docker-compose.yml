@@ -20,7 +20,7 @@ services:
             IGNITION_LOCAL_SITES_PATH: "${PWD}"
         volumes:
             - ".:/var/www/html"
-            - "../GptAssistant:/var/www/GptAssistant"
+            - "../Larry:/var/www/Larry"
         networks:
             - sail
         depends_on:

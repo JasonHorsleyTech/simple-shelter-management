@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2a8431c56ff7b7add16db4be968fbfe2",
+    "content-hash": "9503681a7cd98b98b660c83e49bebec7",
     "packages": [
         {
             "name": "brick/math",
@@ -975,33 +975,33 @@
             "time": "2021-10-07T12:57:01+00:00"
         },
         {
-            "name": "jason_horsley_tech/gpt_assistant",
+            "name": "jason_horsley_tech/larry",
             "version": "dev-main",
             "dist": {
                 "type": "path",
-                "url": "../GptAssistant",
-                "reference": "f02c5df550700d5f5c5e1a5bf37ddc8d73a73e24"
+                "url": "../Larry",
+                "reference": "254766f56ccf5d85763aeefe24f572449497f7cd"
             },
             "type": "library",
             "extra": {
                 "laravel": {
                     "providers": [
-                        "JasonHorsleyTech\\GptAssistant\\GptAssistantServiceProvider"
+                        "JasonHorsleyTech\\Larry\\LarryServiceProvider"
                     ]
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "JasonHorsleyTech\\GptAssistant\\": "src/"
+                    "JasonHorsleyTech\\Larry\\": "src/"
                 }
             },
             "authors": [
                 {
                     "name": "Jason Horsley",
-                    "email": "32709073+JasonHorsleyTech@users.noreply.github.com"
+                    "email": "Jason@JasonHorsley.tech"
                 }
             ],
-            "description": "GPT assistant for laravel",
+            "description": "Larry, the siri style GPT assistant for laravel stacks.",
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -7969,7 +7969,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "jason_horsley_tech/gpt_assistant": 20
+        "jason_horsley_tech/larry": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

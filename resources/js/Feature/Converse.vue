@@ -2,7 +2,9 @@
 import { reactive, ref } from "vue";
 import axios from "axios";
 
-const userSays = ref<string>("");
+const userSays = ref<string>(
+    "Hello, my name is Jason, how are you doing today?s"
+);
 
 const responses = ref<{ type: string; response: Object }[]>([]);
 
@@ -109,9 +111,9 @@ const handle = (actionableResponse: ActionableResponse) => {
 </script>
 
 <template>
-    <div class="grid grid-cols-2 gap-x-4">
+    <div class="grid md:grid-cols-2 gap-x-4">
         <form
-            @submit="post"
+            @submit.prevent="post"
             class="grid gap-y-2"
             :disabled="waiting.post || waiting.response"
         >
