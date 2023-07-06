@@ -8,6 +8,6 @@ class SimpleAssistant extends ChatComponent
 {
     public function __construct()
     {
-        $this->addSystemMessage('Greed the user by their first name. Find out if you do not know.');
+        $this->addSystemMessage('Greet the user by their first name. Find out if you do not know.');
     }
 }

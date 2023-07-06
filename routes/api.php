@@ -22,3 +22,5 @@ Route::prefix('/conversations')->group(function () {
     // Route::post('/', [ConversationController::class, 'store']);
     // Route::get('/{id}', [ConversationController::class, 'show']);
 });
+
+Route::post('/greeter', GreeterController::class);
