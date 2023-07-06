@@ -10,35 +10,35 @@ const links = [
             "Speech to chat responds as it usually does, maybe with some additional custom 'styling' or 'context'.",
     },
     {
-        url: "feature/autoform",
-        type: "autoform",
+        url: "feature/formfill",
+        type: "formfill",
         shortDescription: "Form dictation",
         longDescription:
             "Speech to text to JSON to prefilled form. If partial, can optionally engage in followup questions to complete.",
     },
     {
-        url: "feature/navigation",
-        type: "navigation",
+        url: "feature/navigate",
+        type: "navigate",
         shortDescription: "Site navigation",
         longDescription:
             "Speech to you're where you need to be (with proper state)",
     },
     {
-        url: "feature/inquiry",
-        type: "inquiry",
+        url: "feature/inquire",
+        type: "inquire",
         shortDescription: "Analytics on the fly",
         longDescription: "Speech to a raw SQL query to an answer",
     },
     {
         url: "feature/audit",
-        type: "audits",
+        type: "audit",
         shortDescription: "Nightly audits",
         longDescription:
             "Cron jobs that run multiple slow sort queries and greet you the next morning with results.",
     },
     {
-        url: "feature/action",
-        type: "actions",
+        url: "feature/execute",
+        type: "execute",
         shortDescription: "Reversible actions",
         longDescription:
             "Voice initiated actions that execute on timer/next interaction, assuming no objection.",

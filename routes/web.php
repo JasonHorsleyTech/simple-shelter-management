@@ -22,23 +22,20 @@ Route::group(['prefix' => 'feature'], function () {
     Route::get('/converse', function () {
         return view('feature.converse');
     });
-    Route::get('/converse', function () {
-        return view('feature.converse');
+    Route::get('/formfill', function () {
+        return view('feature.formfill');
     });
-    Route::get('/autoform', function () {
-        return view('feature.autoform');
+    Route::get('/navigate', function () {
+        return view('feature.navigate');
     });
-    Route::get('/navigation', function () {
-        return view('feature.navigation');
-    });
-    Route::get('/inquiry', function () {
-        return view('feature.inquiry');
+    Route::get('/inquire', function () {
+        return view('feature.inquire');
     });
     Route::get('/audit', function () {
         return view('feature.audit');
     });
-    Route::get('/action', function () {
-        return view('feature.action');
+    Route::get('/execute', function () {
+        return view('feature.execute');
     });
 });
 

@@ -975,7 +975,7 @@
             "time": "2021-10-07T12:57:01+00:00"
         },
         {
-            "name": "jason_horsley_tech/larry",
+            "name": "larry/larry",
             "version": "dev-main",
             "dist": {
                 "type": "path",
@@ -7969,7 +7969,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "jason_horsley_tech/larry": 20
+        "larry/larry": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
