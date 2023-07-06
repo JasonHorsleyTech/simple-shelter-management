@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9503681a7cd98b98b660c83e49bebec7",
+    "content-hash": "cd2f39d376b5e8d4fb5ac6ae3d8ec672",
     "packages": [
         {
             "name": "brick/math",
@@ -975,39 +975,6 @@
             "time": "2021-10-07T12:57:01+00:00"
         },
         {
-            "name": "larry/larry",
-            "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "../Larry",
-                "reference": "254766f56ccf5d85763aeefe24f572449497f7cd"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "JasonHorsleyTech\\Larry\\LarryServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "JasonHorsleyTech\\Larry\\": "src/"
-                }
-            },
-            "authors": [
-                {
-                    "name": "Jason Horsley",
-                    "email": "Jason@JasonHorsley.tech"
-                }
-            ],
-            "description": "Larry, the siri style GPT assistant for laravel stacks.",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
-        },
-        {
             "name": "laravel/framework",
             "version": "v10.14.1",
             "source": {
@@ -1400,6 +1367,39 @@
                 "source": "https://github.com/laravel/tinker/tree/v2.8.1"
             },
             "time": "2023-02-15T16:40:09+00:00"
+        },
+        {
+            "name": "larry/larry",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "../Larry",
+                "reference": "f02d5933f54c99ca13e53389294ba8c2fd0aed1e"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Larry\\Larry\\LarryServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Larry\\Larry\\": "src/"
+                }
+            },
+            "authors": [
+                {
+                    "name": "Jason Horsley",
+                    "email": "Jason@JasonHorsley.tech"
+                }
+            ],
+            "description": "The siri style GPT assistant for laravel stacks.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "league/commonmark",
