@@ -8,7 +8,7 @@ use Larry\Larry\Components\ChatComponent;
 use Larry\Larry\Controllers\ChatController;
 use Larry\Larry\LarryController;
 
-class GreeterController extends ChatController
+class VanillaGPTController extends Controller
 {
     public function getPrompt(): ChatComponent
     {
@@ -19,9 +19,20 @@ class GreeterController extends ChatController
         // return (new ChatComponent())->addSystemMessage('Greet the user by their first name. Find out if you do not know.');
 
         // Add a large prompt via blade
-        return (new ChatComponent())->addSystemMessage(view('prompts.greeter'));
+        // return (new ChatComponent())->addSystemMessage(view('prompts.greeter'));
 
         // Or extend the class and build the prompt in the constructor
         // return new SimpleAssistant();
     }
+
+    /**
+     * Handle the incoming request.
+     */
+    public function __invoke(Request $request)
+    {
+        return response()->json([
+            'message' => 'test'
+        ]);
+    }
+
 }

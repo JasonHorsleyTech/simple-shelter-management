@@ -2,11 +2,19 @@
 import { reactive, ref } from "vue";
 import axios from "axios";
 
-const userSays = ref<string>(
-    "Hello, my name is Jason, how are you doing today?s"
-);
+import useSpeechSynthesis from "@/Composables/useSpeechSynthesis";
 
-const responses = ref<{ type: string; response: Object }[]>([]);
+const { speak } = useSpeechSynthesis();
+const userSays = ref<string[]>([
+    "Hello",
+    "My name is Jason",
+    "How are you doing today?",
+]);
+
+const responses = ref<{ type: string; data: Object }[]>([]);
+const log = (type: string, data: Object) => {
+    responses.value.push({ type, data });
+};
 
 const waiting = reactive<{
     post: boolean;
@@ -16,102 +24,96 @@ const waiting = reactive<{
     response: false,
 });
 
-const conversationId = ref<string | null>(null);
+const exchangeId = ref<string | null>(null);
 
+// GPT started thinking
 type PostResponse = {
     data: {
         type: "post";
-        conversation_id: string;
+        exchange_id: string;
     };
 };
 
 /* ---------------------------------------------------------- */
 
-type PingResponse = {
+// GPT still thinking
+type ProcessingResponse = {
     data: {
-        type: "ping";
-        prompts: number;
+        type: "processing";
     };
 };
 
 /* ---------------------------------------------------------- */
 
+// type ActionNavigate = {
+//     action: "navigate";
+//     url: string;
+//     target: string;
+// };
+// type ActionFunction = {
+//     action: "function";
+//     execute: string;
+//     with: Object;
+//     reprompt: boolean;
+// };
+
+// GPT is ready to respond
 type ActionSpeak = {
-    action: "speak";
-    payload: {
-        text: string;
-    };
-};
-type ActionNavigate = {
-    action: "navigate";
-    payload: {
-        url: string;
-        target: string;
-    };
-};
-type ActionFunction = {
-    action: "function";
-    function_name: string;
-    reprompt: boolean;
-    payload: Object;
-};
-
-type ActionableResponse = {
     data: {
-        type: "actionable";
-        actions: Array<ActionSpeak | ActionNavigate | ActionFunction>;
-        terminal: boolean;
+        action: "speak";
+        speak: string;
     };
 };
 
 const post = async () => {
     waiting.post = true;
 
-    const postResponse = (await axios.post("/api/larry/conversations", {
-        said: userSays.value,
-        confidence: 1,
+    const postResponse = (await axios.post("/api/vanilla-gpt", {
+        transcripts: userSays.value.map((said) => ({ said, confidence: 0.99 })),
     })) as PostResponse;
 
-    responses.value.push({ type: "post", response: postResponse });
+    log("post", postResponse.data);
 
-    conversationId.value = postResponse.data.conversation_id;
+    exchangeId.value = postResponse.data.exchange_id;
 
     waiting.post = false;
 
-    ping();
+    longPoll();
 };
 
-const ping = () => {
+const longPoll = () => {
     waiting.response = true;
 
-    const pingInterval = setInterval(async () => {
+    const longPollInterval = setInterval(async () => {
         const mixedResponse = await axios.get(
-            `/api/larry/conversations/${conversationId}/ping`
+            `/api/larry/exchanges/${exchangeId.value}`
         );
 
-        if (mixedResponse.data.type === "ping") {
-            const pingResponse = mixedResponse as PingResponse;
-            responses.value.push({ type: "ping", response: pingResponse });
+        if (mixedResponse.data.type === "processing") {
+            const processingResponse = mixedResponse as ProcessingResponse;
+            log("processing", processingResponse.data);
+            clearInterval(longPollInterval);
         } else {
-            clearInterval(pingInterval);
-            responses.value.push({
-                type: "actionable",
-                response: mixedResponse,
-            });
-            handle(mixedResponse as ActionableResponse);
+            clearInterval(longPollInterval);
+            log("actionable", mixedResponse.data);
+            handle(mixedResponse as ActionSpeak);
             waiting.response = false;
         }
     }, 500);
 };
 
-const handle = (actionableResponse: ActionableResponse) => {
-    console.log(actionableResponse);
-    // Handle it!
+const handle = (actionSpeak: ActionSpeak) => {
+    speak(actionSpeak.data.speak);
 };
 </script>
 
 <template>
-    <div class="grid md:grid-cols-2 gap-x-4">
+    <div class="grid md:grid-cols-2 gap-4 p-4">
+        <p class="md:col-span-2">
+            Conversation dictated by logic in "VanillaGPTController". For this
+            one in particular, it's just a duplicate to regular old ChatGPT
+        </p>
+
         <form
             @submit.prevent="post"
             class="grid gap-y-2"
@@ -119,9 +121,11 @@ const handle = (actionableResponse: ActionableResponse) => {
         >
             <h1 class="text-3xl">User says</h1>
 
-            <textarea
-                v-model="userSays"
-                class="p-2 text-black font-bold text-lg min-h-[16rem] min-w-[24rem]"
+            <input
+                v-for="(said, index) in userSays"
+                v-model="userSays[index]"
+                type="text"
+                class="p-2 text-black font-bold text-lg"
             />
 
             <div class="flex justify-end">
@@ -136,12 +140,11 @@ const handle = (actionableResponse: ActionableResponse) => {
             <h1 class="text-3xl">Log</h1>
 
             <pre
-                v-for="(response, index) in responses"
+                v-for="({ type, data }, index) in responses"
                 :key="index"
                 class="whitespace-pre-wrap border-t first:border-t-0 my-1 py-1"
-            >
-                {{ response }}
-            </pre>
+                v-text="data"
+            />
         </div>
     </div>
 </template>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\VanillaGPTController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,10 +18,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-Route::prefix('/conversations')->group(function () {
-    // Route::post('/', [ConversationController::class, 'store']);
-    // Route::get('/{id}', [ConversationController::class, 'show']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/vanilla-gpt', VanillaGPTController::class);
 });
-
-Route::post('/greeter', GreeterController::class);

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,31 +15,33 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Auth::routes();
 
-Route::group(['prefix' => 'feature'], function () {
-    Route::get('/converse', function () {
-        return view('feature.converse');
-    });
-    Route::get('/formfill', function () {
-        return view('feature.formfill');
-    });
-    Route::get('/navigate', function () {
-        return view('feature.navigate');
-    });
-    Route::get('/inquire', function () {
-        return view('feature.inquire');
-    });
-    Route::get('/audit', function () {
-        return view('feature.audit');
-    });
-    Route::get('/execute', function () {
-        return view('feature.execute');
-    });
-});
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/welcome', function () {
+        return view('welcome');
+    });
 
-Route::get('/test', function () {
+    Route::group(['prefix' => 'feature'], function () {
+        Route::get('/converse', function () {
+            return view('feature.converse');
+        });
+        Route::get('/formfill', function () {
+            return view('feature.formfill');
+        });
+        Route::get('/navigate', function () {
+            return view('feature.navigate');
+        });
+        Route::get('/inquire', function () {
+            return view('feature.inquire');
+        });
+        Route::get('/audit', function () {
+            return view('feature.audit');
+        });
+        Route::get('/execute', function () {
+            return view('feature.execute');
+        });
+    });
 });
