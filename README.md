@@ -1,6 +1,6 @@
 # Simple shelter management
 
-A dummy project, for the purposes of developing and demoing Larry, the laravel virtual assistant.
+A dummy project, for the purposes of developing and demoing [Larry](https://github.com/JasonHorsleyTech/Larry), the laravel virtual assistant.
 
 ## Setup
 You need GPT_ENABLED=true and a key (.env.example)
