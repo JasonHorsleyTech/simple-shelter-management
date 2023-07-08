@@ -1,6 +1,6 @@
 <x-layout>
     <div>
-        <div id="converse-app"></div>
+        <div id="greeter-app"></div>
 
         @vite('resources/js/app.js')
     </div>

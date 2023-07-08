@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\VanillaGPTController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AssistantsDemoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,5 +19,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/vanilla-gpt', VanillaGPTController::class);
+    Route::post('/assistants/{assistant}', [AssistantsDemoController::class, '__invoke']);
 });

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Components;
+namespace App\Prompts;
 
-use Larry\Larry\Components\ChatComponent;
+use Larry\Larry\Prompts\ChatPrompt;
 
-class SimpleAssistant extends ChatComponent
+class Greeter extends ChatPrompt
 {
     public function __construct()
     {

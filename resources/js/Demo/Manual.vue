@@ -1,19 +1,21 @@
 <script setup lang="ts">
+/* -------------------------------------------------------------------------- */
+/*       For demo purposes only. Shows how you might roll your own input      */
+/* -------------------------------------------------------------------------- */
+
 import { reactive, ref } from "vue";
 import axios from "axios";
+import resolveDemoTranscripts from "../Composables/resolveDemoTranscripts";
 
-import useSpeechSynthesis from "@/Composables/useSpeechSynthesis";
+const props = defineProps<{
+    assistant: string;
+}>();
 
-const { speak } = useSpeechSynthesis();
-const userSays = ref<string[]>([
-    "Hello",
-    "My name is Jason",
-    "How are you doing today?",
-]);
+const userSays = resolveDemoTranscripts(props.assistant);
 
 const responses = ref<{ type: string; data: Object }[]>([]);
 const log = (type: string, data: Object) => {
-    responses.value.push({ type, data });
+    responses.value.unshift({ type, data });
 };
 
 const waiting = reactive<{
@@ -68,9 +70,15 @@ type ActionSpeak = {
 const post = async () => {
     waiting.post = true;
 
-    const postResponse = (await axios.post("/api/vanilla-gpt", {
-        transcripts: userSays.value.map((said) => ({ said, confidence: 0.99 })),
-    })) as PostResponse;
+    const postResponse = (await axios.post(
+        `/api/assistants/${props.assistant}`,
+        {
+            transcripts: userSays.value.map((said) => ({
+                said,
+                confidence: 0.99,
+            })),
+        }
+    )) as PostResponse;
 
     log("post", postResponse.data);
 
@@ -103,29 +111,29 @@ const longPoll = () => {
 };
 
 const handle = (actionSpeak: ActionSpeak) => {
-    speak(actionSpeak.data.speak);
+    // Implement your own handlers here
 };
 </script>
 
 <template>
     <div class="grid md:grid-cols-2 gap-4 p-4">
-        <p class="md:col-span-2">
-            Conversation dictated by logic in "VanillaGPTController". For this
-            one in particular, it's just a duplicate to regular old ChatGPT
+        <p class="md:col-span-2 h-16">
+            Conversation dictated by logic in "assistants/greeter". For this one
+            in particular, it's just a duplicate to regular old ChatGPT
         </p>
 
         <form
             @submit.prevent="post"
-            class="grid gap-y-2"
+            class="flex flex-col gap-y-2"
             :disabled="waiting.post || waiting.response"
         >
-            <h1 class="text-3xl">User says</h1>
+            <h1 class="md:text-3xl">User says</h1>
 
             <input
                 v-for="(said, index) in userSays"
                 v-model="userSays[index]"
                 type="text"
-                class="p-2 text-black font-bold text-lg"
+                class="p-2 text-black font-bold md:text-lg"
             />
 
             <div class="flex justify-end">
@@ -136,15 +144,19 @@ const handle = (actionSpeak: ActionSpeak) => {
             </div>
         </form>
 
-        <div class="grid gap-y-2">
-            <h1 class="text-3xl">Log</h1>
+        <div class="relative">
+            <h1 class="text-lg md:text-3xl">Log (recent at top)</h1>
 
             <pre
                 v-for="({ type, data }, index) in responses"
                 :key="index"
-                class="whitespace-pre-wrap border-t first:border-t-0 my-1 py-1"
+                class="whitespace-pre-wrap border-b last:border-b-0 my-1 py-1"
                 v-text="data"
             />
+
+            <!-- <div
+                class="absolute bottom-0 w-full h-32 bg-gradient-to-b from-transparent to-gray-800 pointer-events-none"
+            /> -->
         </div>
     </div>
 </template>

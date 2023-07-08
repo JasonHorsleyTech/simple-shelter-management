@@ -14,7 +14,7 @@
                         </div>
                     @endif
 
-                    <a href="/welcome">Examples</a>
+                    <a href="/assistants">Go to demo</a>
                 </div>
             </div>
         </div>
