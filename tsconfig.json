@@ -6,10 +6,11 @@
         "paths": {
             "@/*": [
                 "resources/js/*"
-            ]
+            ],
         },
         "types": [
-            "vite/client"
+            "vite/client",
+            "dom-speech-recognition"
         ],
         "target": "ESNext",
         "module": "es2020",

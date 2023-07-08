@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Manual from "./Demo/Manual.vue";
-import Larry from "./Larry/Larry.vue";
+import Larry from "./Larry/App.vue";
 
 const props = defineProps<{
     assistant: string;
