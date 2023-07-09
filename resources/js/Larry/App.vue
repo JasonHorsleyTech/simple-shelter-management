@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import LarryIcon from "@/Larry/images/larry-icon.png";
-
 import axios from "axios";
 
 import { ref } from "vue";
@@ -8,44 +6,35 @@ import { onMounted } from "vue";
 import { watch } from "vue";
 import { computed } from "vue";
 
-const browserCompatible = ref<boolean | null>(null);
+import Speaker from "@/Classes/Speaker";
+import LarryIcon from "@/Larry/images/icon-larry.png";
+import SpinnerIcon from "@/Larry/images/icon-spinner.png";
+import SpeakerIcon from "@/Larry/images/icon-speaker.png";
+import WaveformVisualizer from "@/Larry/Components/WaveformVisualizer.vue";
 
-const emit = defineEmits(["initiate-mode"]);
-
-// Is the user holding the "talk" button?
-const holdingTheFloor = ref<boolean>(false);
-
-// Are we waiting for something the user said to come back to us as text?
-const recognizing = ref<boolean>(false);
-
-// Are we playing a gpt through a voice synth to the user?
-const talking = ref<boolean>(false);
-
-// What we heard the user say.
-const transcripts = ref<{ said: string; confidence: number }[]>([]);
-
-// Stop context menu on mobile
-const buttonRef = ref<HTMLDivElement | null>(null);
-
-// TODO: Figure this out
-/**
- * Thinking...
- *
- * Would probably be better to expose slots where possible. We could have a slot for "pressed, thinking, talking, listening, etc".
- *
- * The only real props would be
- *
- * api path
- * "hey larry" (always listening mode?)
- * idunno man
- */
 type LarryOptions = {
-    minimal?: boolean;
-    mode?: boolean;
+    path?: string;
+    wrapperClasses?: string;
+    buttonClasses?: string;
 };
-const props = defineProps<{ options: LarryOptions }>();
 export type { LarryOptions };
+const props = withDefaults(defineProps<LarryOptions>(), {
+    path: "/api/larry",
+    wrapperClasses:
+        "group cursor-pointer grid place-content-center touch-none user-select-none h-32 w-32 mx-auto ",
+    buttonClasses: `
+        relative cursor-pointer border border-green-500 bg-green-200/25 rounded-full text-green-500 transition-all
 
+        group-data-[mode=holding]:bg-red-500/25 group-data-[mode=holding]:text-green-800 group-data-[mode=holding]:scale-95 group-data-[mode=holding]:p-2
+
+        group-data-[mode=recognizing]:bg-yellow-500/50
+
+        group-data-[mode=thinking]:bg-blue-500/25
+    `,
+});
+
+const browserCompatible = ref<boolean | null>(null);
+const buttonRef = ref<HTMLDivElement | null>(null);
 onMounted(() => {
     // @ts-ignore
     browserCompatible.value = !!window.webkitSpeechRecognition;
@@ -53,6 +42,7 @@ onMounted(() => {
         return;
     }
 
+    // Stop context menu on mobile
     buttonRef.value?.addEventListener("contextmenu", (event: MouseEvent) => {
         event.preventDefault();
         event.stopPropagation();
@@ -61,17 +51,47 @@ onMounted(() => {
     });
 });
 
-const recognition = ref<SpeechRecognition>(
-    new window.webkitSpeechRecognition()
-);
-recognition.value.continuous = true;
-recognition.value.interimResults = false;
+// Is the user holding the "talk" button?
+const holdingTheFloor = ref<boolean>(false);
 
-recognition.value.onaudiostart = () => {
+// Are we waiting for something the user said to come back to us as text?
+const recognizing = ref<boolean>(false);
+
+// Waiting on API
+const thinking = ref<boolean>(false);
+
+// Are we playing a gpt through a voice synth to the user?
+const speaking = ref<boolean>(false);
+
+// And we're going to do it in that order every time.
+// TODO: Interrupts.
+// Interrupting speaker should speaking.value = false;
+// Interrupting thinking should... Cancel the request? But should it also add the previous recognized back.
+// Same for recognizing I think.
+const mode = computed(() => {
+    return holdingTheFloor.value
+        ? "holding"
+        : recognizing.value
+        ? "recognizing"
+        : thinking.value
+        ? "thinking"
+        : speaking.value
+        ? "speaking"
+        : "idle";
+});
+
+// What we heard the user say.
+const transcripts = ref<{ said: string; confidence: number }[]>([]);
+
+/* -------------------------------------------------------------------------- */
+
+const recognition = new window.webkitSpeechRecognition();
+recognition.continuous = true;
+recognition.interimResults = false;
+recognition.onaudiostart = () => {
     recognizing.value = true;
 };
-
-recognition.value.onresult = (event: SpeechRecognitionEvent) => {
+recognition.onresult = (event: SpeechRecognitionEvent) => {
     const result = event.results[event.results.length - 1][0];
 
     transcripts.value.push({
@@ -81,75 +101,63 @@ recognition.value.onresult = (event: SpeechRecognitionEvent) => {
 
     recognizing.value = false;
 
-    if (!holdingTheFloor.value) process();
+    // They let up on the button a few seconds ago. This is the "final" result to resolve.
+    if (!holdingTheFloor.value) {
+        recognition.stop();
+        process();
+    }
 };
 
 // Speech recognition times out after X seconds of silence.
 // If they're still holding the "talk" button, restart it.
-recognition.value.onend = () => {
-    if (holdingTheFloor.value) recognition.value.start();
+recognition.onend = () => {
+    if (holdingTheFloor.value) recognition.start();
 };
 
-// Start listening when they press the button.
-watch(holdingTheFloor, (holding) => {
-    if (holding && !recognizing.value) {
-        recognition.value.start();
-        return;
-    } else {
-        recognition.value.stop();
-    }
+const speaker = new Speaker();
 
-    if (recognizing.value === true) {
-        // process will happen inside recognition.value.onresult
-        return;
-    }
-
-    process();
-});
-
-// Colors and sizes to communicate the complicated "state" of the listening talking device.
-const classList = computed(() => {
-    if (holdingTheFloor.value) {
-        return "bg-red-500/50 text-green-800 w-[45px] h-[45px]";
-    }
-    if (recognizing.value) {
-        return "bg-red-500/50 text-yellow-200 w-[45px] h-[45px]";
-    }
-
-    return "group-hover:bg-green-500/25 group-hover:text-white group-hover:w-[55px] group-hover:h-[55px]";
-});
-
-type Action = {
-    function: string;
-};
-type Exchange = {
-    user_transcript: string;
-    assistant_verbal_response?: string;
-    assistant_action?: Action;
-};
 const process = async () => {
-    const response = (await axios.post("/", {
-        exchange: {
-            user_transcripts: transcripts.value,
-        },
-    })) as { data: Exchange };
+    thinking.value = true;
+    const response = (await axios.post(props.path, {
+        transcripts: transcripts.value,
+    })) as { data: { exchange_id: string } };
 
-    // const actionable: {
-    //     content: null | string;
-    //     functionCall: null | object;
-    //     role: "assistant";
-    // } = response.data;
+    const { data } = await longPoll(response.data.exchange_id);
 
-    // TODO: Speech synth for response, or initiate mode if we get that fnc call back, and
-    // const synth = window.speechSynthesis;
-    // const utterThis = new SpeechSynthesisUtterance(actionable.content);
-    // utterThis.onend = () => {
-    //     talking.value = false;
-    // };
-    // synth.speak(utterThis);
-
+    speaking.value = true;
+    await speaker.utter(data.speak);
+    speaking.value = false;
     transcripts.value = [];
 };
+
+type SpeechResponse = { data: { type: string; speak: string } };
+const longPoll = (exchangeId: string) => {
+    return new Promise<SpeechResponse>((resolve) => {
+        const longPollInterval = setInterval(async () => {
+            const mixedResponse = await axios.get(
+                `${props.path}/exchanges/${exchangeId}`
+            );
+
+            if (mixedResponse.data.type !== "processing") {
+                clearInterval(longPollInterval);
+                return resolve(mixedResponse as SpeechResponse);
+            }
+        }, 500);
+    });
+};
+
+watch(holdingTheFloor, (holding) => {
+    // They started holding the floor but we were already listening? Do nothing.
+    // They STOPPED holding the floor but we haven't finished "hearing" it? Do nothing.
+    if (recognizing.value) return;
+
+    if (holding) {
+        recognition.start();
+    } else {
+        recognition.stop();
+        process();
+    }
+});
 </script>
 
 <template>
@@ -160,18 +168,40 @@ const process = async () => {
 
     <div
         v-else
-        class="grid place-content-center touch-none user-select-none group h-[85px] w-[85px] mx-auto"
+        :class="wrapperClasses"
+        :data-mode="mode"
         ref="buttonRef"
         @mousedown="holdingTheFloor = true"
         @mouseup="holdingTheFloor = false"
+        @mouseout="holdingTheFloor = false"
         @touchstart="holdingTheFloor = true"
         @touchend="holdingTheFloor = false"
+        @touchcancel="holdingTheFloor = false"
     >
         <div
-            class="cursor-pointer border border-green-500 bg-green-200/25 rounded-full w-[50px] h-[50px] text-green-500 transition-all"
-            :class="[classList]"
+            class="pointer-events-none select-none decoration-transparent"
+            :class="buttonClasses"
         >
-            <img :src="LarryIcon" />
+            <slot name="holding" v-if="holdingTheFloor">
+                <img class="opacity-25" :src="LarryIcon" />
+                <div class="absolute inset-0 grid place-content-center">
+                    <WaveformVisualizer v-if="holdingTheFloor" />
+                </div>
+            </slot>
+            <slot name="recognizing" v-else-if="recognizing">
+                <img :src="LarryIcon" />
+            </slot>
+            <slot name="thinking" v-else-if="thinking">
+                <div class="p-8">
+                    <img :src="SpinnerIcon" class="animate-spin" />
+                </div>
+            </slot>
+            <slot name="speaking" v-else-if="speaking">
+                <img :src="SpeakerIcon" class="animate-pulse" />
+            </slot>
+            <slot name="idle" v-else>
+                <img :src="LarryIcon" />
+            </slot>
         </div>
     </div>
 </template>

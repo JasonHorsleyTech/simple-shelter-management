@@ -6,15 +6,9 @@ const props = defineProps<{
     assistant: string;
     inputMethod: string;
 }>();
-
-const options = {
-    minimal: {},
-};
-
-const buildOptions = options[props.inputMethod] ?? options.minimal;
 </script>
 
 <template>
     <Manual v-if="inputMethod === 'manual'" :assistant="assistant" />
-    <Larry v-else :options="buildOptions" />
+    <Larry v-else />
 </template>
