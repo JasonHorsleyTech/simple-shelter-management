@@ -8,10 +8,14 @@ import axios from "axios";
 import resolveDemoTranscripts from "../Composables/resolveDemoTranscripts";
 
 const props = defineProps<{
-    assistant: string;
+    assistant: {
+        name: string;
+        route: string;
+        description: string;
+    };
 }>();
 
-const userSays = resolveDemoTranscripts(props.assistant);
+const userSays = resolveDemoTranscripts(props.assistant.name);
 
 const responses = ref<{ type: string; data: Object }[]>([]);
 const log = (type: string, data: Object) => {
@@ -70,15 +74,12 @@ type ActionSpeak = {
 const post = async () => {
     waiting.post = true;
 
-    const postResponse = (await axios.post(
-        `/api/assistants/${props.assistant}`,
-        {
-            transcripts: userSays.value.map((said) => ({
-                said,
-                confidence: 0.99,
-            })),
-        }
-    )) as PostResponse;
+    const postResponse = (await axios.post(props.assistant.route, {
+        transcripts: userSays.value.map((said) => ({
+            said,
+            confidence: 0.99,
+        })),
+    })) as PostResponse;
 
     log("post", postResponse.data);
 
@@ -93,18 +94,23 @@ const longPoll = () => {
     waiting.response = true;
 
     const longPollInterval = setInterval(async () => {
-        const mixedResponse = await axios.get(
-            `/api/larry/exchanges/${exchangeId.value}`
-        );
+        try {
+            const mixedResponse = await axios.get(
+                `/api/larry/exchanges/${exchangeId.value}`
+            );
 
-        if (mixedResponse.data.type === "processing") {
-            const processingResponse = mixedResponse as ProcessingResponse;
-            log("processing", processingResponse.data);
+            if (mixedResponse.data.type === "processing") {
+                const processingResponse = mixedResponse as ProcessingResponse;
+                log("processing", processingResponse.data);
+                clearInterval(longPollInterval);
+            } else {
+                clearInterval(longPollInterval);
+                log("actionable", mixedResponse.data);
+                handle(mixedResponse as ActionSpeak);
+                waiting.response = false;
+            }
+        } catch (e) {
             clearInterval(longPollInterval);
-        } else {
-            clearInterval(longPollInterval);
-            log("actionable", mixedResponse.data);
-            handle(mixedResponse as ActionSpeak);
             waiting.response = false;
         }
     }, 500);

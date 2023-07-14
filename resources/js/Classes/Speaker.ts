@@ -1,56 +1,42 @@
-import { ref, onMounted } from 'vue';
-
 class Speaker {
     private synth: SpeechSynthesis;
     private utterance: SpeechSynthesisUtterance | null;
+    private utterFinishedCallback: (() => void) | null;
 
     constructor() {
         this.synth = window.speechSynthesis;
         this.utterance = null;
+        this.utterFinishedCallback = null;
     }
 
     utter = async (text: string) => {
         return new Promise<void>((resolve) => {
+            this.utterFinishedCallback = resolve; // Storing the resolve function in the instance variable
             this.utterance = new SpeechSynthesisUtterance(text);
             this.utterance.onend = () => {
-                this.utterance = null;
-                resolve();
+                this.utterFinished();
+            };
+            this.utterance.onerror = () => {
+                console.log('Speaker error');
+                this.utterFinished();
             };
             this.synth.speak(this.utterance);
         });
     }
 
     interrupt = () => {
-        if (this.utterance) {
+        if (this.synth.speaking) {
             this.synth.cancel();
-            this.utterance = null;
+            this.utterFinished();
+        }
+    }
+
+    private utterFinished = () => {
+        if (this.utterFinishedCallback) {
+            this.utterFinishedCallback();
+            this.utterFinishedCallback = null;
         }
     }
 }
 
 export default Speaker;
-
-// export default function useSpeechSynthesis() {
-//     const synth = window.speechSynthesis;
-//     const voices = ref<SpeechSynthesisVoice[]>([]);
-//     const selectedVoice = ref<string>('Google US English');
-
-//     onMounted(() => {
-//         synth.addEventListener('voiceschanged', () => {
-//             voices.value = synth.getVoices();
-//         });
-//     });
-
-//     function speak(text: string, voiceName?: string) {
-//         const utterance = new SpeechSynthesisUtterance(text);
-//         if (voices.value.length > 0) {
-//             const voiceToUse = voiceName ? voices.value.find((v) => v.name === voiceName) : undefined;
-//             utterance.voice = voiceToUse || voices.value[0];
-//         }
-//         synth.speak(utterance);
-//     }
-
-//     return {
-//         speak,
-//     };
-// }

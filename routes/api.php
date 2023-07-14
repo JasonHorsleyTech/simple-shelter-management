@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AssistantsDemoController;
+use Larry\Larry\Controllers\ConversationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,4 +21,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/assistants/{assistant}', [AssistantsDemoController::class, '__invoke']);
+
+    // Route::post('/greeter', function () {
+    //     return redirect()->route(
+    //         'api.larry.conversation.create',
+    //         ['prompt' => GreeterPrompt::class]
+    //     );
+    // })->name('api.assistant-demos.greeter');
 });

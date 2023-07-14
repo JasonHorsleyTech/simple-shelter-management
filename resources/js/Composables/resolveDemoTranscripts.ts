@@ -6,14 +6,17 @@ import { ref } from "vue";
  * @param assistant
  * @returns ref<string[]>
  */
-const resolveDemoTranscripts = (assistant: string) => {
+const resolveDemoTranscripts = (assistantName: string) => {
     const content = {
         "greeter": [
             "Hello",
             "My name is Jason",
             "How are you doing today?",
+        ],
+        "weather": [
+            "What's the weather today?",
         ]
-    }[assistant] ?? ['Type something'];
+    }[assistantName] ?? ['Type something'];
 
     return ref<string[]>(content);
 };

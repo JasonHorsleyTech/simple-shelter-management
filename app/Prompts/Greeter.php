@@ -2,9 +2,9 @@
 
 namespace App\Prompts;
 
-use Larry\Larry\Prompts\ChatPrompt;
+use Larry\Larry\Prompts\BaseChatPrompt;
 
-class Greeter extends ChatPrompt
+class Greeter extends BaseChatPrompt
 {
     public function __construct()
     {

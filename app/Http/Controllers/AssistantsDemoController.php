@@ -3,60 +3,44 @@
 namespace App\Http\Controllers;
 
 use App\Prompts\Greeter;
+use App\Prompts\Weatherman;
 
-use Larry\Larry\Prompts\ChatPrompt;
-use Larry\Larry\Controllers\ChatController;
+use Larry\Larry\Prompts\BaseChatPrompt;
+use Larry\Larry\Controllers\BaseChatController;
 
-class AssistantsDemoController extends ChatController
+class AssistantsDemoController extends Controller
 {
-    // TODO: These map to prompts
-    public static array $assistants = [
-        'greeter' => [
-            'prompt' => Greeter::class,
-            'description' => 'Greet the user',
-        ],
-    ];
-    public string | null $assistantKey;
-    public ChatPrompt | null $prompt;
-
-    // Determines vue component to use
-    public static array $inputMethods = [
-        // Can write your own front end implementation, following the defined network pattern
-        'manual',
-        // Can drop in a ready made vue component.
-        'converse'
-    ];
-
-    public string | null $inputMethod;
-
-    public function getPrompt(): ChatPrompt
-    {
-        return $this->prompt;
-    }
+    private array $assistants = [];
 
     public function __construct()
     {
-        $this->assistantKey = request()->route('assistant') ?? null;
-        $className = self::$assistants[$this->assistantKey]['prompt'] ?? null;
-        if ($className) {
-            $this->prompt = new $className();
-        }
-        $this->inputMethod = request()->route('inputMethod');
+        $this->assistants = [
+            [
+                'name' => 'greeter',
+                'route' => route('api.larry.conversation.create', ['prompt' => Greeter::class]),
+                'description' => 'Greet the user',
+            ],
+            [
+                'name' => 'weather',
+                'route' => route('api.larry.conversation.create', ['prompt' => Weatherman::class]),
+                'description' => 'Tells the user what the weather is.',
+            ],
+        ];
     }
 
     public function index()
     {
         return view('assistant-demo.index', [
-            'assistants' => self::$assistants,
-            'inputMethods' => self::$inputMethods,
+            'assistants' => $this->assistants,
         ]);
     }
 
-    public function show()
+    public function show(string $assistantKey, string $inputMethod)
     {
-        return view('assistant-demo.show', [
-            'assistant' => $this->assistantKey,
-            'inputMethod' => $this->inputMethod,
-        ]);
+        $assistant = collect($this->assistants)->firstWhere('name', $assistantKey);
+        if (!$assistant) {
+            abort(404);
+        }
+        return view('assistant-demo.show', compact('assistant', 'inputMethod'));
     }
 }

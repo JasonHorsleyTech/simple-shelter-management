@@ -13,13 +13,13 @@ import SpeakerIcon from "@/Larry/images/icon-speaker.png";
 import WaveformVisualizer from "@/Larry/Components/WaveformVisualizer.vue";
 
 type LarryOptions = {
-    path?: string;
+    route?: string;
     wrapperClasses?: string;
     buttonClasses?: string;
 };
 export type { LarryOptions };
 const props = withDefaults(defineProps<LarryOptions>(), {
-    path: "/api/larry",
+    route: "/api/larry",
     wrapperClasses:
         "group cursor-pointer grid place-content-center touch-none user-select-none h-32 w-32 mx-auto ",
     buttonClasses: `
@@ -31,6 +31,11 @@ const props = withDefaults(defineProps<LarryOptions>(), {
 
         group-data-[mode=thinking]:bg-blue-500/25
     `,
+});
+
+const conversationUrl = ref<string>(props.route);
+onMounted(() => {
+    conversationUrl.value = props.route;
 });
 
 const browserCompatible = ref<boolean | null>(null);
@@ -116,31 +121,56 @@ recognition.onend = () => {
 
 const speaker = new Speaker();
 
+type PostResponse = {
+    data: {
+        status: "gpt-processing";
+        url: string;
+    };
+};
 const process = async () => {
     thinking.value = true;
-    const response = (await axios.post(props.path, {
+
+    const response = (await axios.post(conversationUrl.value, {
         transcripts: transcripts.value,
-    })) as { data: { exchange_id: string } };
+    })) as PostResponse;
+    conversationUrl.value = response.data.url;
 
-    const { data } = await longPoll(response.data.exchange_id);
+    const { data } = await longPoll();
 
+    thinking.value = false;
     speaking.value = true;
+
     await speaker.utter(data.speak);
+
     speaking.value = false;
+
+    conversationUrl.value = data.url;
     transcripts.value = [];
 };
 
-type SpeechResponse = { data: { type: string; speak: string } };
-const longPoll = (exchangeId: string) => {
-    return new Promise<SpeechResponse>((resolve) => {
+type PendingResponse = {
+    data: {
+        status: "gpt-processing";
+        url: string;
+    };
+};
+type SpokenResponse = {
+    data: {
+        status: "gpt-finished";
+        speak: string;
+        url: string;
+    };
+};
+const longPoll = () => {
+    return new Promise<SpokenResponse>((resolve) => {
         const longPollInterval = setInterval(async () => {
-            const mixedResponse = await axios.get(
-                `${props.path}/exchanges/${exchangeId}`
-            );
+            const mixedResponse = (await axios.get(conversationUrl.value)) as
+                | PendingResponse
+                | SpokenResponse;
 
-            if (mixedResponse.data.type !== "processing") {
+            if (mixedResponse.data.status === "gpt-finished") {
                 clearInterval(longPollInterval);
-                return resolve(mixedResponse as SpeechResponse);
+                return resolve(mixedResponse as SpokenResponse);
             }
         }, 500);
     });
