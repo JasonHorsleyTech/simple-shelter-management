@@ -13,10 +13,7 @@ class Weatherman extends BaseChatPrompt
 
         $this->exposeFunction(CheckWeather::class);
 
-        // $this->exposeForcedFunction(CheckWeather::class);
-
         // TODO: Maybe this too?
-
         // $this->exposeFunction(
         //     AnonymousFunction::setName('CheckWeather')
         //         ->setDescription('Gets the current weather')

@@ -3,10 +3,11 @@
 /*       For demo purposes only. Shows how you might roll your own input      */
 /* -------------------------------------------------------------------------- */
 
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 import axios from "axios";
 import resolveDemoTranscripts from "../Composables/resolveDemoTranscripts";
 
+// Each conversation has it's own "entrance" route. EG, web.php has /weatherman which points to that specific assistant prompt and function
 const props = defineProps<{
     assistant: {
         name: string;
@@ -15,109 +16,82 @@ const props = defineProps<{
     };
 }>();
 
+type Payload = {
+    transcripts: { said: string; confidence: number }[];
+};
+type ResponseData = {
+    status: "gpt-initiated" | "gpt-processing" | "gpt-finished";
+    url: string;
+    speak?: string;
+};
+
+const waiting = ref<boolean>(false);
+
+const conversationRoute = ref<string | null>(props.assistant.route);
 const userSays = resolveDemoTranscripts(props.assistant.name);
 
-const responses = ref<{ type: string; data: Object }[]>([]);
-const log = (type: string, data: Object) => {
-    responses.value.unshift({ type, data });
+type Exchange = {
+    who: "user" | "assistant";
+    what: string;
+};
+const previousExchanges = ref<Exchange[]>([]);
+
+const responses = ref<{ type: string; data: ResponseData }[]>([]);
+const log = (type: string, response: { data: ResponseData }) => {
+    responses.value.unshift({ type, data: response.data });
 };
 
-const waiting = reactive<{
-    post: boolean;
-    response: boolean;
-}>({
-    post: false,
-    response: false,
-});
-
-const exchangeId = ref<string | null>(null);
-
-// GPT started thinking
-type PostResponse = {
-    data: {
-        type: "post";
-        exchange_id: string;
-    };
-};
-
-/* ---------------------------------------------------------- */
-
-// GPT still thinking
-type ProcessingResponse = {
-    data: {
-        type: "processing";
-    };
-};
-
-/* ---------------------------------------------------------- */
-
-// type ActionNavigate = {
-//     action: "navigate";
-//     url: string;
-//     target: string;
-// };
-// type ActionFunction = {
-//     action: "function";
-//     execute: string;
-//     with: Object;
-//     reprompt: boolean;
-// };
-
-// GPT is ready to respond
-type ActionSpeak = {
-    data: {
-        action: "speak";
-        speak: string;
-    };
-};
-
+/**
+ * Conversation flow
+ *
+ * 1. Send in array of transcripts
+ * 2. Poll response URL until it's finished
+ * 3. Speak response, set new URL
+ *
+ * Keeping the front as "dumb" as possible. Every response sends the URL required to "continue" the conversation.
+ * The backend (GPT) can pick where the conversation should go, or decide if the conversation is finished. But regardless
+ * The front and just "Post here, poll here, re-post here".
+ */
 const post = async () => {
-    waiting.post = true;
+    waiting.value = true;
 
-    const postResponse = (await axios.post(props.assistant.route, {
+    const payload = {
         transcripts: userSays.value.map((said) => ({
             said,
             confidence: 0.99,
         })),
-    })) as PostResponse;
+    } as Payload;
 
-    log("post", postResponse.data);
+    const postResponse = (await axios.post(
+        conversationRoute.value,
+        payload
+    )) as { data: ResponseData };
 
-    exchangeId.value = postResponse.data.exchange_id;
-
-    waiting.post = false;
-
-    longPoll();
-};
-
-const longPoll = () => {
-    waiting.response = true;
+    log("post", postResponse);
+    previousExchanges.value.push({
+        who: "user",
+        what: userSays.value.join(" "),
+    });
+    userSays.value = [""];
+    conversationRoute.value = postResponse.data.url;
 
     const longPollInterval = setInterval(async () => {
-        try {
-            const mixedResponse = await axios.get(
-                `/api/larry/exchanges/${exchangeId.value}`
-            );
+        const pollResponse = await axios.get(conversationRoute.value);
 
-            if (mixedResponse.data.type === "processing") {
-                const processingResponse = mixedResponse as ProcessingResponse;
-                log("processing", processingResponse.data);
-                clearInterval(longPollInterval);
-            } else {
-                clearInterval(longPollInterval);
-                log("actionable", mixedResponse.data);
-                handle(mixedResponse as ActionSpeak);
-                waiting.response = false;
-            }
-        } catch (e) {
-            clearInterval(longPollInterval);
-            waiting.response = false;
+        if (pollResponse.data.status !== "gpt-finished") {
+            return log("poll", pollResponse);
         }
-    }, 500);
-};
 
-const handle = (actionSpeak: ActionSpeak) => {
-    // Implement your own handlers here
+        clearInterval(longPollInterval);
+        log("speak", pollResponse);
+        previousExchanges.value.push({
+            who: "assistant",
+            what: pollResponse.data.speak ?? "No response",
+        });
+        conversationRoute.value = pollResponse.data.url;
+
+        waiting.value = false;
+    }, 500);
 };
 </script>
 
@@ -131,9 +105,15 @@ const handle = (actionSpeak: ActionSpeak) => {
         <form
             @submit.prevent="post"
             class="flex flex-col gap-y-2"
-            :disabled="waiting.post || waiting.response"
+            :disabled="waiting"
         >
-            <h1 class="md:text-3xl">User says</h1>
+            <h1 class="md:text-3xl">Conversation</h1>
+
+            <p
+                v-for="({ who, what }, index) in previousExchanges"
+                :key="index"
+                v-text="`${who}: ${what}`"
+            />
 
             <input
                 v-for="(said, index) in userSays"
@@ -145,6 +125,7 @@ const handle = (actionSpeak: ActionSpeak) => {
             <div class="flex justify-end">
                 <input
                     type="submit"
+                    :disabled="waiting"
                     class="bg-green-500 rounded-lg p-4 hover:bg-green-400 cursor-pointer"
                 />
             </div>
@@ -154,7 +135,7 @@ const handle = (actionSpeak: ActionSpeak) => {
             <h1 class="text-lg md:text-3xl">Log (recent at top)</h1>
 
             <pre
-                v-for="({ type, data }, index) in responses"
+                v-for="({ data }, index) in responses"
                 :key="index"
                 class="whitespace-pre-wrap border-b last:border-b-0 my-1 py-1"
                 v-text="data"

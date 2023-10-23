@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Prompts\Greeter;
 use App\Prompts\Weatherman;
-
-use Larry\Larry\Prompts\BaseChatPrompt;
-use Larry\Larry\Controllers\BaseChatController;
+use App\Prompts\UserSignup;
 
 class AssistantsDemoController extends Controller
 {
@@ -23,6 +21,11 @@ class AssistantsDemoController extends Controller
             [
                 'name' => 'weather',
                 'route' => route('api.larry.conversation.create', ['prompt' => Weatherman::class]),
+                'description' => 'Tells the user what the weather is.',
+            ],
+            [
+                'name' => 'user-signup',
+                'route' => route('api.larry.conversation.create', ['prompt' => UserSignup::class]),
                 'description' => 'Tells the user what the weather is.',
             ],
         ];
